@@ -2,9 +2,12 @@ package com.iago.pokedex.activites
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.iago.pokedex.R
@@ -18,6 +21,7 @@ import kotlinx.android.synthetic.main.activity_main.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
+import kotlin.collections.filter as filter1
 
 
 class MainActivity : AppCompatActivity(){
@@ -25,12 +29,14 @@ class MainActivity : AppCompatActivity(){
     private val remote = RetrofitClient.createService(PokemonService::class.java)
     private val mAdapter: PokemonAdapter = PokemonAdapter()
     private lateinit var mListener: PokemonListener
+    private  var mListPokemons: List<PokemonModel> = arrayListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         configList()
+        configSearch()
         getAllPokemons()
 
     }
@@ -47,6 +53,20 @@ class MainActivity : AppCompatActivity(){
         }
 
         mAdapter.attachListener(mListener)
+    }
+
+    fun configSearch(){
+        search.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable) {}
+            override fun beforeTextChanged(s: CharSequence, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence, start: Int, before: Int, count: Int) {
+                var searchPokemons : List<PokemonModel> = mListPokemons.filter1 {
+                        s2 -> if(s2.name.isNullOrBlank()) false else s2.name!!.contains(s, true)
+                }
+               if(searchPokemons.isEmpty()) notFound.text=getString(R.string.not_found) else notFound.text=""
+                upadteList(searchPokemons)
+            }
+        })
     }
 
     fun openCard(pokemon: PokemonModel?, color: String){
@@ -66,20 +86,27 @@ class MainActivity : AppCompatActivity(){
                     call: Call<List<PokemonModel>>,
                     resp: Response<List<PokemonModel>>
                 ) {
-                    showPokemons(resp.body())
+                    if(resp.body()!=null){
+                        mListPokemons= resp.body()!!
+                        showPokemons()
+                    }
                 }
 
                 override fun onFailure(call: Call<List<PokemonModel>>, t: Throwable) {
-                    Toast.makeText(applicationContext, "Can't get all pokemons", Toast.LENGTH_LONG).show()
+                    alert.text = getString(R.string.erro_request)
+                    load.visibility = View.GONE
                 }
             })
     }
 
-    fun showPokemons(pokemons: List<PokemonModel>?){
-        if(pokemons!=null){
-            mAdapter.updateList(pokemons)
-            mAdapter.notifyDataSetChanged()
+    fun showPokemons(){
+            upadteList(mListPokemons!!)
             load.visibility = View.GONE
-        }
+    }
+
+    private fun upadteList(pokemons: List<PokemonModel>) {
+        mAdapter.updateList(pokemons)
+        mAdapter.notifyDataSetChanged()
     }
 }
+

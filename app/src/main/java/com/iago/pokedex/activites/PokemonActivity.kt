@@ -26,7 +26,7 @@ class PokemonActivity : AppCompatActivity(), TypesFormat {
             name.text = pokemon.name
             number.text=pokemon.id
             backgroundPokemon.setBackgroundColor(Color.parseColor(color));
-            description.text = pokemon.xdescription
+            description.text = pokemon.xdescription?:getString(R.string.no_description)
 
             Glide.with(applicationContext).load(pokemon.imageurl).into(image);
 

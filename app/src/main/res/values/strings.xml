@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">pokedex</string>
+    <string name="erro_request">Internal problems, please try again later.</string>
+    <string name="no_description">No description.</string>
+    <string name="search_pokemon">Search a pokemon</string>
+    <string name="not_found">Not found.</string>
 </resources>
